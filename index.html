@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who's There? - 9,717 Haunted Places</title>
+
+    <!-- Social Share Metadata -->
+    <meta property="og:title" content="Who's There? - 9,717 Haunted Places">
+    <meta property="og:description" content="A constellation of documented haunted locations across America. Move your flashlight through the darkness to reveal their stories.">
+    <meta property="og:image" content="https://dr.eamer.dev/datavis/poems/whos-there/social-card.png">
+    <meta property="og:url" content="https://dr.eamer.dev/datavis/poems/whos-there/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Who's There? - 9,717 Haunted Places">
+    <meta name="twitter:description" content="A constellation of documented haunted locations across America. Move your flashlight through the darkness to reveal their stories.">
+    <meta name="twitter:image" content="https://dr.eamer.dev/datavis/poems/whos-there/social-card.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background: #0a0e1a;
+            color: #e0e0e0;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        .flashlight-cursor {
+            position: fixed;
+            pointer-events: none;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(
+                circle,
+                rgba(255, 248, 220, 0.12) 0%,
+                rgba(255, 248, 220, 0.06) 30%,
+                rgba(255, 248, 220, 0.015) 60%,
+                transparent 100%
+            );
+            z-index: 5;
+            mix-blend-mode: screen;
+            transition: opacity 0.5s;
+        }
+
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 15px;
+            color: rgba(255, 248, 220, 0.35);
+            letter-spacing: 3px;
+            z-index: 100;
+            text-align: center;
+            font-weight: 400;
+            text-transform: uppercase;
+        }
+
+        .btn-icon {
+            position: fixed;
+            top: 18px;
+            right: 24px;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid rgba(255, 248, 220, 0.25);
+            color: rgba(255, 248, 220, 0.5);
+            font-size: 0.9rem;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        .btn-icon:hover {
+            border-color: rgba(255, 248, 220, 0.5);
+            color: rgba(255, 248, 220, 0.8);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            backdrop-filter: blur(8px);
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: rgba(10, 14, 26, 0.95);
+            border: 1px solid rgba(255, 248, 220, 0.08);
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 440px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            color: #fff;
+        }
+        .modal h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 248, 220, 0.8);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        .modal p {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+            font-size: 1rem;
+            color: #ccc;
+        }
+        .modal .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.95rem;
+        }
+        .modal .stat-row span:first-child {
+            color: #888;
+        }
+        .modal .stat-row span:last-child {
+            color: rgba(255, 248, 220, 0.8);
+        }
+        .close-btn {
+            margin-top: 1.5rem;
+            padding: 0.5rem 1.25rem;
+            background: transparent;
+            border: 1px solid rgba(255, 248, 220, 0.15);
+            color: rgba(255, 248, 220, 0.6);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 400;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            transition: all 0.3s;
+            width: 100%;
+            letter-spacing: 1px;
+            text-transform: lowercase;
+        }
+        .close-btn:hover {
+            border-color: rgba(255, 248, 220, 0.3);
+            color: rgba(255, 248, 220, 0.8);
+        }
+
+        .info-card {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 90%;
+            max-width: 520px;
+            background: rgba(10, 14, 26, 0.95);
+            border: 1px solid rgba(255, 248, 220, 0.08);
+            border-radius: 8px;
+            padding: 24px 28px;
+            z-index: 15;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            backdrop-filter: blur(12px);
+        }
+
+        .info-card.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .info-card.pinned {
+            border-color: rgba(255, 248, 220, 0.2);
+        }
+
+        /* Only description scrollable when pinned, rest passes clicks through */
+        .info-card.pinned .description {
+            pointer-events: auto;
+        }
+
+        .info-card .location-name {
+            font-size: 1.35rem;
+            font-weight: 500;
+            color: rgba(255, 248, 220, 0.95);
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .info-card .location-city {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 300;
+        }
+
+        .info-card .description {
+            font-size: 1rem;
+            line-height: 1.75;
+            color: rgba(255, 255, 255, 0.75);
+            font-style: italic;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .info-card .description::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .info-card .description::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .info-card .description::-webkit-scrollbar-thumb {
+            background: rgba(255, 248, 220, 0.12);
+            border-radius: 2px;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            color: rgba(255, 248, 220, 0.25);
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .loading-stories {
+            position: fixed;
+            bottom: 12px;
+            right: 16px;
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            color: rgba(255, 248, 220, 0.3);
+            text-transform: lowercase;
+            font-weight: 300;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            z-index: 10;
+        }
+        .loading-stories.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 10px;
+                letter-spacing: 1.5px;
+            }
+
+            .btn-icon {
+                top: 12px;
+                right: 12px;
+                width: 1.25rem;
+                height: 1.25rem;
+                font-size: 0.65rem;
+            }
+
+            .info-card {
+                bottom: 12px;
+                padding: 18px 22px;
+                max-width: calc(100% - 24px);
+            }
+
+            .info-card .location-name {
+                font-size: 1.15rem;
+            }
+
+            .info-card .location-city {
+                font-size: 0.7rem;
+            }
+
+            .info-card .description {
+                font-size: 0.95rem;
+                max-height: 140px;
+            }
+
+            .flashlight-cursor {
+                display: none;
+            }
+
+            body {
+                cursor: default;
+            }
+
+            .modal {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 9px;
+                top: 12px;
+            }
+
+            .btn-icon {
+                top: 8px;
+                right: 8px;
+                width: 1.1rem;
+                height: 1.1rem;
+                font-size: 0.6rem;
+            }
+
+            .info-card {
+                bottom: 8px;
+                padding: 14px 18px;
+                max-width: calc(100% - 16px);
+            }
+
+            .info-card .location-name {
+                font-size: 1.05rem;
+            }
+
+            .info-card .location-city {
+                font-size: 0.65rem;
+                margin-bottom: 12px;
+            }
+
+            .info-card .description {
+                font-size: 0.9rem;
+                line-height: 1.65;
+                max-height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="flashlight-cursor" id="flashlight"></div>
+
+    <div class="title">who's there</div>
+    <div class="btn-icon" id="info-btn">?</div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h2>Who's There?</h2>
+            <p>Nearly ten thousand haunted places hide in the darkness — hotels where footsteps echo in empty hallways, cemeteries where figures linger at dusk, houses that remember what happened inside them. Shine your light and find out who's still there.</p>
+
+            <div class="stat-row">
+                <span>Haunted Places</span>
+                <span id="spirit-count">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Most Haunted State</span>
+                <span id="top-state"></span>
+            </div>
+
+            <p style="font-size: 0.85rem; margin-top: 1.25rem; margin-bottom: 0.5rem; color: rgba(255, 248, 220, 0.7); font-weight: 500;">Explore</p>
+            <div style="font-size: 0.95rem; line-height: 1.7; color: #aaa;">
+                Your cursor is a flashlight. Sweep it through the dark to reveal spirits. Hover over one to read its story. On mobile, drag slowly across the screen.
+            </div>
+
+            <p style="font-size: 0.75rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #666;">Data: <a href="https://www.theshadowlands.net/places/" target="_blank" rel="noopener" style="color: rgba(255, 248, 220, 0.5); text-decoration: none;">Shadowlands Haunted Places Index &#8599;</a></p>
+
+            <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem; margin-top: 1.5rem;">
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.9rem;">
+                    <a href="https://lukesteuber.com" target="_blank" rel="noopener"
+                       style="color: rgba(255, 248, 220, 0.6); text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Created by Luke Steuber</span>
+                        <span style="opacity: 0.5;">&#8599;</span>
+                    </a>
+                    <a href="https://dr.eamer.dev/datavis" target="_blank" rel="noopener"
+                       style="color: rgba(255, 248, 220, 0.6); text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>More visualizations</span>
+                        <span style="opacity: 0.5;">&#8599;</span>
+                    </a>
+                </div>
+            </div>
+
+            <button class="close-btn" id="close-modal">Close</button>
+        </div>
+    </div>
+
+    <div class="info-card" id="info-card">
+        <div class="location-name" id="card-location"></div>
+        <div class="location-city" id="card-city"></div>
+        <div class="description" id="card-description"></div>
+    </div>
+
+    <div class="loading" id="loading">Summoning spirits...</div>
+    <div class="loading-stories" id="loading-stories">loading stories...</div>
+
+    <script>
+        class Spirit {
+            constructor(data, virtualWidth, virtualHeight) {
+                this.data = data;
+                // Denser distribution - smaller virtual space relative to count
+                this.baseX = Math.random() * virtualWidth;
+                this.baseY = Math.random() * virtualHeight;
+                this.x = this.baseX;
+                this.y = this.baseY;
+                this.size = 1.2 + Math.random() * 2;
+                this.driftPhase = Math.random() * Math.PI * 2;
+                this.baseDriftSpeed = 0.002 + Math.random() * 0.004;
+                this.driftSpeed = this.baseDriftSpeed;
+                this.baseDriftRadius = 6 + Math.random() * 14;
+                this.driftRadius = this.baseDriftRadius;
+
+                // Ghostly colors - subtle blue-white
+                this.baseHue = 200 + Math.random() * 30;
+                this.hue = this.baseHue;
+
+                // Pin state (when hovered, spirit is "pinned" in place)
+                this.pinIntensity = 0;
+                this.targetPinIntensity = 0;
+
+                // Haunting state (after dwell, spirit follows cursor)
+                this.dwellProgress = 0;
+                this.isHaunting = false;
+                this.hauntIntensity = 0;
+                this.targetHauntIntensity = 0;
+
+                // For following cursor when haunting
+                this.followX = this.x;
+                this.followY = this.y;
+            }
+
+            setFocused(focused) {
+                this.targetPinIntensity = focused ? 1 : 0;
+                if (!focused && !this.isHaunting) {
+                    // Only reset dwell if not yet haunting
+                    this.dwellProgress = 0;
+                }
+                // Note: haunting spirits keep following until explicitly released
+            }
+
+            releaseHaunt() {
+                // Call this to stop a spirit from haunting
+                this.isHaunting = false;
+                this.targetHauntIntensity = 0;
+                this.dwellProgress = 0;
+            }
+
+            updateDwell(dt) {
+                // Accumulate dwell time while pinned (dt in frames, ~60fps)
+                if (this.targetPinIntensity > 0 && !this.isHaunting) {
+                    this.dwellProgress += dt * 0.006; // ~2.5 seconds to haunt
+                    if (this.dwellProgress >= 1) {
+                        this.isHaunting = true;
+                        this.targetHauntIntensity = 1;
+                    }
+                }
+            }
+
+            update(time, mouseVirtualX, mouseVirtualY) {
+                // Smooth pin transition (slow and subtle)
+                this.pinIntensity += (this.targetPinIntensity - this.pinIntensity) * 0.03;
+
+                // Snap haunt transition (sudden pop)
+                this.hauntIntensity += (this.targetHauntIntensity - this.hauntIntensity) * 0.15;
+
+                // Release haunting when intensity drops
+                if (this.isHaunting && this.hauntIntensity < 0.05) {
+                    this.isHaunting = false;
+                    this.hauntIntensity = 0;
+                }
+
+                // Color shift: blue → red as haunting intensifies
+                this.hue = this.baseHue + (0 - this.baseHue) * this.hauntIntensity; // Shift toward red (0)
+
+                // When pinned but not haunting: slow down drift significantly
+                const driftMultiplier = 1 - this.pinIntensity * 0.9;
+
+                // Gentle drift
+                const driftX = Math.sin(this.driftPhase + time * this.baseDriftSpeed) * this.baseDriftRadius * driftMultiplier;
+                const driftY = Math.cos(this.driftPhase * 1.3 + time * this.baseDriftSpeed * 0.7) * this.baseDriftRadius * 0.5 * driftMultiplier;
+
+                // Base position from drift
+                const driftedX = this.baseX + driftX;
+                const driftedY = this.baseY + driftY;
+
+                // When haunting: follow cursor eagerly
+                if (this.isHaunting && mouseVirtualX !== undefined && !isNaN(mouseVirtualX)) {
+                    // Move toward cursor position quickly
+                    this.followX += (mouseVirtualX - this.followX) * 0.08;
+                    this.followY += (mouseVirtualY - this.followY) * 0.08;
+
+                    // Position is the follow position when haunting
+                    this.x = this.followX;
+                    this.y = this.followY;
+                } else if (this.hauntIntensity > 0.01) {
+                    // Transitioning out of haunt - blend back to drift
+                    this.x = driftedX + (this.followX - driftedX) * this.hauntIntensity;
+                    this.y = driftedY + (this.followY - driftedY) * this.hauntIntensity;
+                } else {
+                    this.x = driftedX;
+                    this.y = driftedY;
+                    // Reset follow position to current position
+                    this.followX = this.x;
+                    this.followY = this.y;
+                }
+            }
+
+            draw(ctx, mouseX, mouseY, flashlightRadius, time, transform) {
+                const screenX = this.x * transform.scale + transform.x;
+                const screenY = this.y * transform.scale + transform.y;
+
+                const dist = Math.sqrt(
+                    Math.pow(screenX - mouseX, 2) +
+                    Math.pow(screenY - mouseY, 2)
+                );
+
+                // Visibility based on flashlight
+                let visibility = 0;
+                if (dist < flashlightRadius) {
+                    visibility = 1 - (dist / flashlightRadius);
+                    visibility = Math.pow(visibility, 0.6);
+                }
+
+                // Boost visibility when pinned or haunting
+                visibility = Math.min(1, visibility + this.pinIntensity * 0.4 + this.hauntIntensity * 0.5);
+
+                // Ambient effect for spirits outside flashlight (unless haunting)
+                if (visibility <= 0.05 && !this.isHaunting) {
+                    this.drawAmbientEffect(ctx, screenX, screenY, time, transform.scale);
+                    return;
+                }
+
+                // Pulse effect when haunting
+                const pulse = this.isHaunting ? 1 + Math.sin(time * 0.08) * 0.15 * this.hauntIntensity : 1;
+                const sizeMultiplier = (1 + this.pinIntensity * 0.3 + this.hauntIntensity * 0.4) * pulse;
+                const drawSize = this.size * sizeMultiplier * transform.scale;
+
+                // Soft glow - shifts red when haunting
+                const gradient = ctx.createRadialGradient(
+                    screenX, screenY, 0,
+                    screenX, screenY, drawSize * 5
+                );
+
+                const alpha = visibility * (0.6 + this.pinIntensity * 0.3 + this.hauntIntensity * 0.3);
+                const lightness = 80 + this.pinIntensity * 10;
+                const saturation = 25 + this.hauntIntensity * 45; // More saturated when red
+
+                gradient.addColorStop(0, `hsla(${this.hue}, ${saturation}%, ${lightness}%, ${alpha})`);
+                gradient.addColorStop(0.25, `hsla(${this.hue}, ${saturation - 5}%, 65%, ${alpha * 0.4})`);
+                gradient.addColorStop(0.5, `hsla(${this.hue + 10}, ${saturation - 10}%, 55%, ${alpha * 0.15})`);
+                gradient.addColorStop(1, 'transparent');
+
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, drawSize * 5, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Bright core when visible enough - pulses red when haunting
+                if (visibility > 0.3 || this.isHaunting) {
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, drawSize * 0.4, 0, Math.PI * 2);
+                    const coreAlpha = Math.max(visibility - 0.3, this.hauntIntensity * 0.7) * (1 + this.pinIntensity * 0.5);
+
+                    if (this.isHaunting) {
+                        // Red pulsing core
+                        const redPulse = 200 + Math.sin(time * 0.1) * 55 * this.hauntIntensity;
+                        ctx.fillStyle = `rgba(${redPulse}, ${100 - this.hauntIntensity * 60}, ${100 - this.hauntIntensity * 80}, ${Math.min(0.95, coreAlpha)})`;
+                    } else {
+                        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.9, coreAlpha)})`;
+                    }
+                    ctx.fill();
+                }
+
+            }
+
+            isNear(x, y, radius, transform) {
+                const screenX = this.x * transform.scale + transform.x;
+                const screenY = this.y * transform.scale + transform.y;
+                const dist = Math.sqrt(
+                    Math.pow(screenX - x, 2) +
+                    Math.pow(screenY - y, 2)
+                );
+                return dist < radius;
+            }
+
+            getScreenPosition(transform) {
+                return {
+                    x: this.x * transform.scale + transform.x,
+                    y: this.y * transform.scale + transform.y
+                };
+            }
+
+            drawAmbientEffect(ctx, screenX, screenY, time, scale) {
+                // Very subtle ambient twinkle
+                const twinkle = Math.sin(time * 0.02 + this.driftPhase) * 0.5 + 0.5;
+                ctx.fillStyle = `rgba(160, 175, 190, ${0.02 + twinkle * 0.015})`;
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, this.size * 0.6 * scale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class HauntedConstellation {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.flashlight = document.getElementById('flashlight');
+                this.infoCard = document.getElementById('info-card');
+                this.loading = document.getElementById('loading');
+                this.spirits = [];
+                this.mouseX = window.innerWidth / 2;
+                this.mouseY = window.innerHeight / 2;
+                this.flashlightRadius = 160;
+                this.time = 0;
+                this.focusedSpirit = null;
+                this.hauntingSpirit = null; // Track spirit that's actively haunting/following
+                this.pinnedSpirit = null; // Track pinned spirit (click to pin, click elsewhere to unpin)
+                this.descriptions = null; // Lazy-loaded descriptions (keyed by ghost id)
+                this.descriptionsLoading = false;
+                this.lastTapTime = 0; // For double-tap detection on mobile
+
+                // Virtual space - smaller for denser spirits (doubled density)
+                this.virtualWidth = window.innerWidth * 1.75;
+                this.virtualHeight = window.innerHeight * 1.75;
+
+                // Calculate minimum scale to ensure content always fills viewport
+                this.minScale = Math.max(
+                    window.innerWidth / this.virtualWidth,
+                    window.innerHeight / this.virtualHeight
+                );
+                this.maxScale = 3;
+
+                // Desktop: start zoomed out to show full field; Mobile: zoomed in for density
+                const isDesktop = window.innerWidth > 768;
+                const initialScale = isDesktop ? this.minScale : Math.max(this.minScale * 1.5, 0.8);
+                this.transform = {
+                    x: (window.innerWidth - this.virtualWidth * initialScale) / 2,
+                    y: (window.innerHeight - this.virtualHeight * initialScale) / 2,
+                    scale: initialScale
+                };
+                this.targetTransform = { ...this.transform };
+
+                // Touch/pinch zoom state
+                this.lastTouchDist = 0;
+                this.lastTouchCenter = { x: 0, y: 0 };
+                this.isPanning = false;
+                this.lastPanPos = { x: 0, y: 0 };
+
+                this.resize();
+                this.setupEventListeners();
+                this.loadData();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+
+                // Recalculate minScale to ensure content fills viewport
+                this.minScale = Math.max(
+                    this.canvas.width / this.virtualWidth,
+                    this.canvas.height / this.virtualHeight
+                );
+
+                // Ensure current scale isn't below new minimum
+                if (this.targetTransform.scale < this.minScale) {
+                    this.targetTransform.scale = this.minScale;
+                    this.transform.scale = this.minScale;
+                }
+
+                // Re-constrain pan after resize
+                this.constrainPan();
+            }
+
+            setupEventListeners() {
+                window.addEventListener('resize', () => this.resize());
+
+                // Mouse move
+                document.addEventListener('mousemove', (e) => {
+                    if (this.isPanning) {
+                        const dx = e.clientX - this.lastPanPos.x;
+                        const dy = e.clientY - this.lastPanPos.y;
+                        this.targetTransform.x += dx;
+                        this.targetTransform.y += dy;
+                        this.lastPanPos = { x: e.clientX, y: e.clientY };
+                    } else {
+                        this.mouseX = e.clientX;
+                        this.mouseY = e.clientY;
+
+                        this.flashlight.style.left = e.clientX + 'px';
+                        this.flashlight.style.top = e.clientY + 'px';
+
+                        this.updateFocus();
+                    }
+                });
+
+                document.addEventListener('mouseleave', () => {
+                    this.mouseX = -1000;
+                    this.mouseY = -1000;
+                    this.clearFocus();
+                });
+
+                // Mouse wheel zoom
+                this.canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const factor = e.deltaY > 0 ? 0.92 : 1.08;
+                    this.zoomAt(e.clientX, e.clientY, factor);
+                }, { passive: false });
+
+                // Pan with middle mouse or right-click drag
+                this.canvas.addEventListener('mousedown', (e) => {
+                    if (e.button === 1 || e.button === 2) {
+                        this.isPanning = true;
+                        this.lastPanPos = { x: e.clientX, y: e.clientY };
+                        e.preventDefault();
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    this.isPanning = false;
+                });
+
+                this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+                // Click to pin spirit (dense constellation: any click pins/switches, Escape unpins)
+                this.canvas.addEventListener('click', (e) => {
+                    if (this.focusedSpirit) {
+                        // Click on any focused spirit - pin it (switching from previous if any)
+                        this.pinnedSpirit = this.focusedSpirit;
+                        this.infoCard.classList.add('pinned');
+                        this.showInfoCard(this.focusedSpirit.data);
+                    } else if (this.pinnedSpirit) {
+                        // Click on blank space (rare) - unpin
+                        this.unpinSpirit();
+                    }
+                });
+
+                // Escape key to unpin (the only reliable way in ultra-dense constellation)
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.pinnedSpirit) {
+                        this.unpinSpirit();
+                    }
+                });
+
+                // Touch events
+                let touchStartTime = 0;
+                let touchStartPos = { x: 0, y: 0 };
+
+                this.canvas.addEventListener('touchstart', (e) => {
+                    touchStartTime = Date.now();
+
+                    if (e.touches.length === 2) {
+                        // Pinch zoom start
+                        const t1 = e.touches[0];
+                        const t2 = e.touches[1];
+                        this.lastTouchDist = Math.sqrt(
+                            Math.pow(t2.clientX - t1.clientX, 2) +
+                            Math.pow(t2.clientY - t1.clientY, 2)
+                        );
+                        this.lastTouchCenter = {
+                            x: (t1.clientX + t2.clientX) / 2,
+                            y: (t1.clientY + t2.clientY) / 2
+                        };
+                    } else if (e.touches.length === 1) {
+                        const touch = e.touches[0];
+                        this.mouseX = touch.clientX;
+                        this.mouseY = touch.clientY;
+                        this.lastPanPos = { x: touch.clientX, y: touch.clientY };
+                        touchStartPos = { x: touch.clientX, y: touch.clientY };
+                        this.updateFocus();
+                    }
+                }, { passive: true });
+
+                this.canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+
+                    if (e.touches.length === 2) {
+                        // Pinch zoom
+                        const t1 = e.touches[0];
+                        const t2 = e.touches[1];
+                        const dist = Math.sqrt(
+                            Math.pow(t2.clientX - t1.clientX, 2) +
+                            Math.pow(t2.clientY - t1.clientY, 2)
+                        );
+                        const center = {
+                            x: (t1.clientX + t2.clientX) / 2,
+                            y: (t1.clientY + t2.clientY) / 2
+                        };
+
+                        if (this.lastTouchDist > 0) {
+                            const factor = dist / this.lastTouchDist;
+                            this.zoomAt(center.x, center.y, factor);
+
+                            // Pan with pinch
+                            const dx = center.x - this.lastTouchCenter.x;
+                            const dy = center.y - this.lastTouchCenter.y;
+                            this.targetTransform.x += dx;
+                            this.targetTransform.y += dy;
+                        }
+
+                        this.lastTouchDist = dist;
+                        this.lastTouchCenter = center;
+                    } else if (e.touches.length === 1) {
+                        const touch = e.touches[0];
+                        const touchDuration = Date.now() - touchStartTime;
+
+                        // If quick movement, it's a pan; if slow, it's exploring
+                        const dx = touch.clientX - this.lastPanPos.x;
+                        const dy = touch.clientY - this.lastPanPos.y;
+                        const speed = Math.sqrt(dx * dx + dy * dy);
+
+                        if (speed > 8 || touchDuration < 150) {
+                            // Fast movement = pan
+                            this.targetTransform.x += dx;
+                            this.targetTransform.y += dy;
+                            this.clearFocus();
+                        } else {
+                            // Slow movement = exploring
+                            this.mouseX = touch.clientX;
+                            this.mouseY = touch.clientY;
+                            this.updateFocus();
+                        }
+
+                        this.lastPanPos = { x: touch.clientX, y: touch.clientY };
+                    }
+                }, { passive: false });
+
+                this.canvas.addEventListener('touchend', (e) => {
+                    if (e.touches.length < 2) {
+                        this.lastTouchDist = 0;
+                    }
+                    if (e.touches.length === 0) {
+                        const touchEndTime = Date.now();
+                        const touchDuration = touchEndTime - touchStartTime;
+                        const touchEndPos = e.changedTouches[0];
+                        const touchDistance = Math.sqrt(
+                            Math.pow(touchEndPos.clientX - touchStartPos.x, 2) +
+                            Math.pow(touchEndPos.clientY - touchStartPos.y, 2)
+                        );
+
+                        // Detect tap: short duration (<300ms) and minimal movement (<20px)
+                        if (touchDuration < 300 && touchDistance < 20) {
+                            // Check for double-tap (unpin gesture for mobile)
+                            const now = Date.now();
+                            if (this.lastTapTime && now - this.lastTapTime < 400) {
+                                // Double-tap - unpin
+                                if (this.pinnedSpirit) {
+                                    this.unpinSpirit();
+                                }
+                                this.lastTapTime = 0;
+                                return;
+                            }
+                            this.lastTapTime = now;
+
+                            // Single tap with focused spirit - pin/switch
+                            if (this.focusedSpirit) {
+                                this.pinnedSpirit = this.focusedSpirit;
+                                this.infoCard.classList.add('pinned');
+                                this.showInfoCard(this.focusedSpirit.data);
+                                return;
+                            } else if (this.pinnedSpirit) {
+                                // Tap on blank space (rare) - unpin
+                                this.unpinSpirit();
+                                return;
+                            }
+                        }
+
+                        this.mouseX = -1000;
+                        this.mouseY = -1000;
+                        // Keep info card visible briefly after touch ends (unless pinned)
+                        setTimeout(() => {
+                            if (this.mouseX < 0 && !this.pinnedSpirit) {
+                                this.clearFocus();
+                            }
+                        }, 300);
+                    }
+                });
+            }
+
+            zoomAt(x, y, factor) {
+                // Use dynamic min/max scale
+                const newScale = Math.max(this.minScale, Math.min(this.maxScale, this.targetTransform.scale * factor));
+                const scaleChange = newScale / this.targetTransform.scale;
+
+                this.targetTransform.x = x - (x - this.targetTransform.x) * scaleChange;
+                this.targetTransform.y = y - (y - this.targetTransform.y) * scaleChange;
+                this.targetTransform.scale = newScale;
+                // Pan constraints applied in animate()
+            }
+
+            async loadData() {
+                try {
+                    // Load positions first (fast ~1MB)
+                    const posResponse = await fetch('./data/ghosts-positions.json');
+                    if (!posResponse.ok) throw new Error('Failed to load positions');
+                    const posData = await posResponse.json();
+
+                    // Create ALL spirits immediately (no descriptions yet)
+                    posData.ghosts.forEach(ghost => {
+                        this.spirits.push(new Spirit(ghost, this.virtualWidth, this.virtualHeight));
+                    });
+
+                    // Update stats
+                    document.getElementById('spirit-count').textContent =
+                        posData.ghosts.length.toLocaleString();
+
+                    const stateCounts = {};
+                    posData.ghosts.forEach(ghost => {
+                        stateCounts[ghost.state] = (stateCounts[ghost.state] || 0) + 1;
+                    });
+                    const topState = Object.entries(stateCounts)
+                        .sort((a, b) => b[1] - a[1])[0];
+                    document.getElementById('top-state').textContent =
+                        `${topState[0]} (${topState[1].toLocaleString()})`;
+
+                    this.loading.style.display = 'none';
+                    this.animate();
+
+                    // Load descriptions in background (slower ~3.6MB)
+                    this.loadDescriptions();
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    this.loading.textContent = 'Failed to summon spirits';
+                }
+            }
+
+            async loadDescriptions() {
+                if (this.descriptions || this.descriptionsLoading) return;
+                this.descriptionsLoading = true;
+                try {
+                    const response = await fetch('./data/ghosts-descriptions.json');
+                    if (response.ok) {
+                        this.descriptions = await response.json();
+                        // Update any currently displayed spirit's description
+                        if (this.focusedSpirit || this.pinnedSpirit) {
+                            const spirit = this.pinnedSpirit || this.focusedSpirit;
+                            this.showInfoCard(spirit.data);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to load descriptions:', e);
+                }
+                this.descriptionsLoading = false;
+                // Hide loading indicator
+                const loadingIndicator = document.getElementById('loading-stories');
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('hidden');
+                }
+            }
+
+            updateFocus() {
+                const hoverRadius = 20;
+                let newFocused = null;
+                let closestDist = Infinity;
+
+                // Find closest spirit within hover radius
+                for (const spirit of this.spirits) {
+                    if (spirit.isNear(this.mouseX, this.mouseY, this.flashlightRadius * 0.7, this.transform)) {
+                        const pos = spirit.getScreenPosition(this.transform);
+                        const dist = Math.sqrt(
+                            Math.pow(pos.x - this.mouseX, 2) +
+                            Math.pow(pos.y - this.mouseY, 2)
+                        );
+                        if (dist < hoverRadius && dist < closestDist) {
+                            closestDist = dist;
+                            newFocused = spirit;
+                        }
+                    }
+                }
+
+                // Update focus (easy to switch between spirits)
+                if (newFocused !== this.focusedSpirit) {
+                    // If focusing a new spirit while one is haunting, release the old haunt
+                    if (newFocused && this.hauntingSpirit && newFocused !== this.hauntingSpirit) {
+                        this.hauntingSpirit.releaseHaunt();
+                        this.hauntingSpirit = null;
+                    }
+
+                    if (this.focusedSpirit) {
+                        this.focusedSpirit.setFocused(false);
+                    }
+
+                    this.focusedSpirit = newFocused;
+
+                    if (this.focusedSpirit) {
+                        this.focusedSpirit.setFocused(true);
+                        // Only update info card if not pinned (pinned card stays fixed)
+                        if (!this.pinnedSpirit) {
+                            this.showInfoCard(this.focusedSpirit.data);
+                        }
+                    } else if (!this.hauntingSpirit && !this.pinnedSpirit) {
+                        this.hideInfoCard();
+                    }
+                }
+
+                // Track when a spirit starts haunting
+                if (this.focusedSpirit && this.focusedSpirit.isHaunting && !this.hauntingSpirit) {
+                    this.hauntingSpirit = this.focusedSpirit;
+                }
+            }
+
+            clearFocus() {
+                if (this.focusedSpirit) {
+                    this.focusedSpirit.setFocused(false);
+                    this.focusedSpirit = null;
+                }
+                // Release haunting spirit when leaving screen
+                if (this.hauntingSpirit) {
+                    this.hauntingSpirit.releaseHaunt();
+                    this.hauntingSpirit = null;
+                }
+                // Only hide info card if not pinned
+                if (!this.pinnedSpirit) {
+                    this.hideInfoCard();
+                }
+            }
+
+            showInfoCard(data) {
+                document.getElementById('card-location').textContent = data.location;
+                document.getElementById('card-city').textContent = `${data.city}, ${data.state}`;
+
+                // Get description from lazy-loaded descriptions
+                const descEl = document.getElementById('card-description');
+                if (this.descriptions && this.descriptions[data.id]) {
+                    descEl.textContent = `"${this.descriptions[data.id]}"`;
+                } else {
+                    descEl.textContent = 'Loading story...';
+                    // Trigger description load if not already loading
+                    this.loadDescriptions();
+                }
+                this.infoCard.classList.add('visible');
+            }
+
+            hideInfoCard() {
+                this.infoCard.classList.remove('visible');
+            }
+
+            unpinSpirit() {
+                this.pinnedSpirit = null;
+                this.infoCard.classList.remove('pinned');
+                // After unpinning, show currently focused spirit OR hide card
+                if (this.focusedSpirit) {
+                    // Switch to showing the focused spirit
+                    this.showInfoCard(this.focusedSpirit.data);
+                } else {
+                    this.hideInfoCard();
+                }
+            }
+
+            constrainPan() {
+                // Content must always cover the viewport - pan stops when edge hits viewport edge
+                const scale = this.targetTransform.scale;
+                const contentWidth = this.virtualWidth * scale;
+                const contentHeight = this.virtualHeight * scale;
+
+                // Content left edge can't go past viewport left (transform.x <= 0)
+                // Content right edge can't go past viewport right (transform.x >= canvas.width - contentWidth)
+                const minX = this.canvas.width - contentWidth;
+                const maxX = 0;
+
+                const minY = this.canvas.height - contentHeight;
+                const maxY = 0;
+
+                this.targetTransform.x = Math.max(minX, Math.min(maxX, this.targetTransform.x));
+                this.targetTransform.y = Math.max(minY, Math.min(maxY, this.targetTransform.y));
+            }
+
+            animate() {
+                // Constrain pan each frame
+                this.constrainPan();
+
+                // Smooth transform interpolation
+                this.transform.x += (this.targetTransform.x - this.transform.x) * 0.08;
+                this.transform.y += (this.targetTransform.y - this.transform.y) * 0.08;
+                this.transform.scale += (this.targetTransform.scale - this.transform.scale) * 0.08;
+
+                // Dark navy background
+                this.ctx.fillStyle = '#0a0e1a';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Convert mouse position to virtual coordinates for haunting follow
+                const mouseVirtualX = (this.mouseX - this.transform.x) / this.transform.scale;
+                const mouseVirtualY = (this.mouseY - this.transform.y) / this.transform.scale;
+
+                // Update dwell on focused spirit
+                if (this.focusedSpirit) {
+                    this.focusedSpirit.updateDwell(1);
+                }
+
+                // Keep haunting spirit following even when not directly focused
+                if (this.hauntingSpirit && this.hauntingSpirit !== this.focusedSpirit) {
+                    this.hauntingSpirit.update(this.time, mouseVirtualX, mouseVirtualY);
+                }
+
+                // Update and draw spirits
+                this.spirits.forEach(spirit => {
+                    spirit.update(this.time, mouseVirtualX, mouseVirtualY);
+                    spirit.draw(this.ctx, this.mouseX, this.mouseY, this.flashlightRadius, this.time, this.transform);
+                });
+
+                // Very subtle vignette
+                const vignette = this.ctx.createRadialGradient(
+                    this.canvas.width / 2, this.canvas.height / 2, 0,
+                    this.canvas.width / 2, this.canvas.height / 2, Math.max(this.canvas.width, this.canvas.height) * 0.7
+                );
+                vignette.addColorStop(0, 'transparent');
+                vignette.addColorStop(1, 'rgba(0, 0, 0, 0.25)');
+                this.ctx.fillStyle = vignette;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.time++;
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize
+        window.constellation = new HauntedConstellation();
+
+        // Modal controls
+        const infoBtn = document.getElementById('info-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeModal = document.getElementById('close-modal');
+
+        infoBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('active');
+        });
+
+        closeModal.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
