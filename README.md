@@ -1,78 +1,65 @@
-# WHO'S THERE?
+# Who's There?
 
-9,717 haunted locations across America, hidden in darkness. Move your cursor (or finger on mobile) like a flashlight to reveal them. Each point pulses with an eerie glow when illuminated.
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Live Site](https://img.shields.io/badge/live-dr.eamer.dev-brightgreen)](https://dr.eamer.dev/datavis/poems/whos-there/)
 
-## Features
+9,717 haunted places across America, hidden in total darkness. Your cursor is the only light.
 
-- **9,717 haunted locations**: Documented sites across all 50 states
-- **Flashlight mechanic**: Cursor becomes a beam revealing nearby points
-- **Interactive stories**: Click any location for haunting details
-- **Atmospheric audio**: Optional ambient soundscape
-- **Geographic clustering**: Reveals regional patterns
-- **Touch support**: Mobile-friendly flashlight controls
+Move through the void and the beam slowly illuminates documented haunted locations — cemeteries, hotels, hospitals, private homes. Each one pulses with a faint warm glow when caught in the light. Click any point to read what happened there.
 
-## Technical Stack
+## What it does
 
-- **Canvas API**: Hardware-accelerated rendering
-- **Vanilla JavaScript**: No frameworks
-- **Cormorant Garamond font**: Elegant serif for gothic aesthetic
-- **Custom cursor**: CSS-based flashlight effect
+- Renders all 9,717 locations as a constellation on a near-black canvas
+- Your cursor acts as a radial flashlight with a soft falloff — nothing outside the beam is visible
+- Click a location to see its name, city, state, and the account on record
+- Touch and drag on mobile for the same effect
+- Geographic clustering reveals which regions of the country have the highest density of reported sites
+
+## Controls
+
+| Input | Action |
+|-------|--------|
+| Mouse move | Move flashlight |
+| Click | Open location details |
+| Touch + drag | Move flashlight (mobile) |
+| Tap | Select location |
+| Escape | Close detail panel |
+
+## Stack
+
+- Vanilla JavaScript, Canvas API
+- Cormorant Garamond for the gothic serif aesthetic
+- Custom CSS cursor replaced by a canvas-drawn radial gradient beam
+- No frameworks, no build step
 
 ## Files
 
-- `index.html` - Complete single-file application (47KB)
-- `data/ghosts-descriptions.json` - Haunting descriptions
-- `data/ghosts-positions.json` - Geographic coordinates
-- `social-card.png` - Open Graph image (159KB)
-
-## Data Structure
-
-**Positions** (`ghosts-positions.json`):
-```json
-{
-  "id": "location-001",
-  "latitude": 40.7128,
-  "longitude": -74.0060,
-  "city": "New York",
-  "state": "NY"
-}
+```
+whos-there/
+├── index.html                    # Full visualization, inline JS/CSS
+├── data/
+│   ├── ghosts-positions.json     # Lat/lon for all 9,717 locations
+│   └── ghosts-descriptions.json  # Names, descriptions, accounts
+└── social-card.png               # 1200x630 Open Graph image
 ```
 
-**Descriptions** (`ghosts-descriptions.json`):
-```json
-{
-  "id": "location-001",
-  "name": "The Haunted Mansion",
-  "description": "Shadow figures seen in the hallway...",
-  "year_first_reported": 1872
-}
-```
+## Data
 
-## Flashlight Controls
+Drawn from the Shadowlands Haunted Places Index, Ghost Village directory, state paranormal societies, and historical records. Locations are approximate to protect property owners.
 
-- **Desktop**: Move mouse to illuminate
-- **Mobile**: Touch and drag to move flashlight
-- **Click/Tap**: Select location for details
-- **Escape**: Close detail panel
-
-## Local Development
+## Running locally
 
 ```bash
 python3 -m http.server 8000
-# Visit http://localhost:8000
+# open http://localhost:8000
 ```
-
-## Data Source
-
-Compiled from multiple paranormal databases including:
-- The Shadowlands Haunted Places Index
-- Ghost Village directory
-- State-specific paranormal societies
-- Historical haunting records
-
-Note: Locations are approximate to protect privacy of property owners.
 
 ## Author
 
-Luke Steuber
-https://lukesteuber.com
+Luke Steuber — [lukesteuber.com](https://lukesteuber.com) — [@lukesteuber.com](https://bsky.app/profile/lukesteuber.com) on Bluesky
+
+Part of the [data poems collection](https://dr.eamer.dev/datavis/poems/) at dr.eamer.dev.
+
+## License
+
+MIT
