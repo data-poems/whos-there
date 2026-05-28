@@ -5,12 +5,12 @@
 
 9,717 haunted places across America, hidden in total darkness. Your cursor is the only light.
 
-Move through the void and the beam slowly illuminates documented haunted locations — cemeteries, hotels, hospitals, private homes. Each one pulses with a faint warm glow when caught in the light. Click any point to read what happened there.
+Move through the void and the beam slowly illuminates documented haunted locations: cemeteries, hotels, hospitals, private homes. Each one pulses with a faint warm glow when caught in the light. Click any point to read what happened there.
 
 ## What it does
 
 - Renders all 9,717 locations as a constellation on a near-black canvas
-- Your cursor acts as a radial flashlight with a soft falloff — nothing outside the beam is visible
+- Your cursor acts as a radial flashlight with a soft falloff. Nothing outside the beam is visible
 - Click a location to see its name, city, state, and the account on record
 - Touch and drag on mobile for the same effect
 - Geographic clustering reveals which regions of the country have the highest density of reported sites
